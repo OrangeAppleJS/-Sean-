@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" type="text/css" href="map.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!--jQuery-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://npmcdn.com/leaflet@0.7.7/dist/leaflet.css" />
+    <script src="https://npmcdn.com/leaflet@0.7.7/dist/leaflet.js"></script>
+    <title>MAPDRAW</title>
+</head>
+
+<body>
+    <div id="mapid"></div>
+    <script>
+        // 建立 Leaflet 地圖
+        var map = L.map('mapid');
+
+        // 設定經緯度座標，以下是橘子蘋果總部的經緯度
+        // 第二個參數數字越大代表zoom in越近
+        map.setView(new L.LatLng(25.0272439, 121.5220343), 16);
+
+        // 設定圖資來源
+        var WiFiURL = "http://data.taipei/opendata/datalist/apiAccess?scope=resourceAquire&rid=b087af42-2c54-4dbf-86c8-427d788779e5";
+        //Draw the map
+        var osmUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        var osm = new L.TileLayer(osmUrl, {
+            minZoom: 8, //縮小地圖的最小值
+            maxZoom: 16 //放大地圖的最大值
+        });
+        map.addLayer(osm);
+
+        //Get Markers
+        function getWifiHotspots(callback) {
+            $.ajax({
+                type: "GET",
+                url: WiFiURL,
+                dataType: "json",
+                success: function (e) {
+                    callback(e.result.results);
+                }
+            })
+        }
+
+        getWifiHotspots(function (Hotspots) {
+            Hotspots.forEach(function (hotspot) {
+                //console.log(hotspot);
+                //console.log(hotspot.ADDRESS.contains("板橋區"));
+                if(hotspot.ADDRESS.contains("大安區")){
+                    
+                    
+                    var hotspotMarker = L.marker([hotspot['LAT'], hotspot['LNG']]).addTo(map);
+                    console.log(hotspot['HOTSPOT_NAME'] + " " + hotspot['AREA']);
+                    hotspotMarker.bindPopup('<strong>' + hotspot['HOTSPOT_NAME'] + '</strong><br>' + hotspot['AREA']);
+                }
+                
+            })
+
+
+        })
+
+        String.prototype.contains = function(it) { return this.indexOf(it) != -1; };
+    </script>
+</body>
+
+</html>
